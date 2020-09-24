@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    id="cordova-android-screenshare"
+    version="1.0.0">
+
+  <name>CordovaAndroidScreenshare</name>
+  <description>Screenshare in Cordova Android</description>
+
+  <engines>
+    <engine name="cordova" version=">=3.0.0"/>
+  </engines>
+
+  <author>Rex Chiu</author>
+
+  <js-module src="www/index.js" name="CordovaAndroidScreenshare">
+    <clobbers target="CordovaAndroidScreenshare" />
+  </js-module>
+
+  <platform name="android">
+    <config-file target="res/xml/config.xml" parent="/*">
+      <feature name="CordovaAndroidScreenshare">
+        <param name="android-package" value="com.iotum.cordovaandroidscreenshare.CordovaAndroidScreenshare" />
+      </feature>
+    </config-file>
+    <source-file src="src/android/CordovaAndroidScreenshare.java" target-dir="src/com/iotum/cordovaandroidscreenshare" />
+  </platform>
+</plugin>

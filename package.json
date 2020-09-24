@@ -1,0 +1,18 @@
+{
+  "name": "cordova-android-screenshare",
+  "version": "1.0.0",
+  "description": "Screenshare in Cordova Android",
+  "cordova": {
+    "id": "cordova-android-screenshare",
+    "platforms": [
+      "android"
+    ]
+  },
+  "engines": [
+    {
+      "name": "cordova",
+      "version": ">=3.0.0"
+    }
+  ],
+  "author": "Rex Chiu"
+}

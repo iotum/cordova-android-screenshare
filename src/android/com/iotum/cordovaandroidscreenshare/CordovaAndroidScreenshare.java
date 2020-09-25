@@ -204,9 +204,9 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
 
       if (sMediaProjection != null) {
         // display metrics
-        DisplayMetrics metrics = getResources().getDisplayMetrics();
+        DisplayMetrics metrics = cordova.getActivity().getResources().getDisplayMetrics();
         mDensity = metrics.densityDpi;
-        mDisplay = getWindowManager().getDefaultDisplay();
+        mDisplay = cordova.getActivity().getWindowManager().getDefaultDisplay();
 
         // create virtual display depending on device width / height
         createVirtualDisplay();

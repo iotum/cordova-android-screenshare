@@ -17,6 +17,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.Base64;
 import android.view.Display;
 import android.view.OrientationEventListener;
 
@@ -232,7 +233,8 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
    * UI Widget Callbacks
    *******************************/
   private void startProjection() {
-    startActivityForResult(mProjectionManager.createScreenCaptureIntent(), REQUEST_CODE);
+    cordova.setActivityResultCallback(this);
+    cordova.startActivityForResult(mProjectionManager.createScreenCaptureIntent(), REQUEST_CODE);
   }
 
   private void stopProjection() {

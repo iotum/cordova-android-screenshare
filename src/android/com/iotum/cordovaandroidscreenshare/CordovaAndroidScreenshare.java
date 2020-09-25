@@ -52,6 +52,22 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   private int mRotation;
   private OrientationChangeCallback mOrientationChangeCallback;
 
+  private CallbackContext mCallbackContext;
+
+  @Override
+  public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
+    mCallbackContext = callbackContext;
+    if (action.equals("startProjection")) {
+      startProjection();
+      return true;
+    } else if (action.equals("stopProjection")) {
+      stopProjection();
+      return true;
+    }
+    callbackContext.error("action not found");
+    return false;
+  }
+
   private class ImageAvailableListener implements ImageReader.OnImageAvailableListener {
     @Override
     public void onImageAvailable(ImageReader reader) {
@@ -71,7 +87,26 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
           bitmap = Bitmap.createBitmap(mWidth + rowPadding / pixelStride, mHeight, Bitmap.Config.ARGB_8888);
           bitmap.copyPixelsFromBuffer(buffer);
 
-          // TODO convert bitmap to jpeg/base64 data URI
+          // convert bitmap to jpeg based64 URI
+          ByteArrayOutputStream jpeg_data = new ByteArrayOutputStream();
+          if (bitmap.compress(CompressFormat.JPEG, 100, jpeg_data)) {
+            byte[] code = jpeg_data.toByteArray();
+            byte[] output = Base64.encode(code, Base64.NO_WRAP);
+            String js_out = new String(output);
+            js_out = "data:image/jpeg;base64," + js_out;
+            JSONObject jsonRes = new JSONObject();
+            jsonRes.put("URI", js_out);
+            PluginResult result = new PluginResult(PluginResult.Status.OK, jsonRes);
+            mCallbackContext.sendPluginResult(result);
+
+            js_out = null;
+            output = null;
+            code = null;
+          } else {
+            mCallbackContext.error("Unable to convert bitmap");
+          }
+
+          jpeg_data = null;
 
           Log.e(TAG, "captured image");
         }

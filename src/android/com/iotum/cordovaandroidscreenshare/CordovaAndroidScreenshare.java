@@ -198,7 +198,7 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
 
   // TODO: Add logic for rejected permissions
   @Override
-  protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+  public void onActivityResult(int requestCode, int resultCode, Intent data) {
     if (requestCode == REQUEST_CODE) {
       sMediaProjection = mProjectionManager.getMediaProjection(resultCode, data);
 

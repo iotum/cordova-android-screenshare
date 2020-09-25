@@ -98,6 +98,7 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
             JSONObject jsonRes = new JSONObject();
             jsonRes.put("URI", js_out);
             PluginResult result = new PluginResult(PluginResult.Status.OK, jsonRes);
+            result.setKeepCallback(true);
             mCallbackContext.sendPluginResult(result);
 
             js_out = null;

@@ -212,7 +212,7 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
         createVirtualDisplay();
 
         // register orientation change callback
-        mOrientationChangeCallback = new OrientationChangeCallback(this);
+        mOrientationChangeCallback = new OrientationChangeCallback(cordova.getActivity().getApplicationContext());
         if (mOrientationChangeCallback.canDetectOrientation()) {
           mOrientationChangeCallback.enable();
         }

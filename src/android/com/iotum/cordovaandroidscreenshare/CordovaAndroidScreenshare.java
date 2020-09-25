@@ -234,7 +234,7 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
    *******************************/
   private void startProjection() {
     cordova.setActivityResultCallback(this);
-    cordova.startActivityForResult(mProjectionManager.createScreenCaptureIntent(), REQUEST_CODE);
+    cordova.startActivityForResult(this, mProjectionManager.createScreenCaptureIntent(), REQUEST_CODE);
   }
 
   private void stopProjection() {

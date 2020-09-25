@@ -182,7 +182,8 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
     super.initialize(cordova, webView);
 
     // call for the projection manager
-    mProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+    mProjectionManager = (MediaProjectionManager) cordova.getActivity()
+        .getSystemService(Context.MEDIA_PROJECTION_SERVICE);
 
     // start capture handling thread
     new Thread() {

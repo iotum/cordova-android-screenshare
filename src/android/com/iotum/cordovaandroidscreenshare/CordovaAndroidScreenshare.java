@@ -166,6 +166,7 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
           if (mOrientationChangeCallback != null)
             mOrientationChangeCallback.disable();
           sMediaProjection.unregisterCallback(MediaProjectionStopCallback.this);
+          mCallbackContext.success("Stopped");
         }
       });
     }

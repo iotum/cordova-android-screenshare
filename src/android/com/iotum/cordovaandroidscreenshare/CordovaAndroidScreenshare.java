@@ -96,7 +96,7 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
 
           // Send first frame for startRecord callback
           if (mSendFirstFrame) {
-            mBitmapBuffer = bitmap.copy(Bitmap.Config.ARGB_8888, false);
+            mBitmapBuffer = bitmap;
             sendImage();
           }
         }

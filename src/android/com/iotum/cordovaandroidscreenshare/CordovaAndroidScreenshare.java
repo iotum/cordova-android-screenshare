@@ -52,8 +52,6 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   private int mHeight;
   private int mRotation;
   private OrientationChangeCallback mOrientationChangeCallback;
-  private boolean mSendFirstFrame = false;
-  private Bitmap mBitmapBuffer;
 
   private CallbackContext mCallbackContext;
 
@@ -61,14 +59,10 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
     mCallbackContext = callbackContext;
     if (action.equals("startProjection")) {
-      mSendFirstFrame = true;
       startProjection();
       return true;
     } else if (action.equals("stopProjection")) {
       stopProjection();
-      return true;
-    } else if (action.equals("sendImage")) {
-      sendImage();
       return true;
     }
     callbackContext.error("action not found");
@@ -94,12 +88,31 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
           bitmap = Bitmap.createBitmap(mWidth + rowPadding / pixelStride, mHeight, Bitmap.Config.ARGB_8888);
           bitmap.copyPixelsFromBuffer(buffer);
 
-          // Send first frame for startRecord callback
-          if (mSendFirstFrame) {
-            mBitmapBuffer = bitmap;
-            sendImage();
+          // convert bitmap to jpeg based64 URI
+          ByteArrayOutputStream jpeg_data = new ByteArrayOutputStream();
+          if (bitmap.compress(CompressFormat.JPEG, 100, jpeg_data)) {
+            byte[] code = jpeg_data.toByteArray();
+            byte[] output = Base64.encode(code, Base64.NO_WRAP);
+            String js_out = new String(output);
+            js_out = "data:image/jpeg;base64," + js_out;
+            JSONObject jsonRes = new JSONObject();
+            jsonRes.put("URI", js_out);
+            PluginResult result = new PluginResult(PluginResult.Status.OK, jsonRes);
+            result.setKeepCallback(true);
+            mCallbackContext.sendPluginResult(result);
+
+            js_out = null;
+            output = null;
+            code = null;
+          } else {
+            mCallbackContext.error("Unable to convert bitmap");
           }
+
+          jpeg_data = null;
+
+          Log.e(TAG, "captured image");
         }
+
       } catch (Exception e) {
         e.printStackTrace();
       } finally {
@@ -112,32 +125,6 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
         }
       }
     }
-  }
-
-  private void sendImage() {
-    // convert bitmap to jpeg based64 URI
-    ByteArrayOutputStream jpeg_data = new ByteArrayOutputStream();
-
-    // continue if there is a stored bitmap in buffer
-    if (mBitmapBuffer.compress(CompressFormat.JPEG, 100, jpeg_data)) {
-      mSendFirstFrame = false;
-      byte[] code = jpeg_data.toByteArray();
-      byte[] output = Base64.encode(code, Base64.NO_WRAP);
-      String js_out = new String(output);
-      js_out = "data:image/jpeg;base64," + js_out;
-      JSONObject jsonRes = new JSONObject();
-      jsonRes.put("URI", js_out);
-      PluginResult result = new PluginResult(PluginResult.Status.OK, jsonRes);
-      mCallbackContext.sendPluginResult(result);
-
-      js_out = null;
-      output = null;
-      code = null;
-    } else {
-      mCallbackContext.error("Unable to convert bitmap to JPEG");
-    }
-    jpeg_data = null;
-    Log.e(TAG, "captured image");
   }
 
   private class OrientationChangeCallback extends OrientationEventListener {

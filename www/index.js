@@ -4,8 +4,5 @@ module.exports = {
   },
   stopScreenshare: (callback) => {
     cordova.exec(response => { callback(null, response) }, error => callback(error), "CordovaAndroidScreenshare", 'stopProjection', null)
-  },
-  getImage: (callback) => {
-    cordova.exec(response => { callback(null, response) }, error => callback(error), "CordovaAndroidScreenshare", 'sendImage', null)
   }
 }

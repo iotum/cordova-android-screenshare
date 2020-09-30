@@ -130,6 +130,11 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
         js_out = "data:image/jpeg;base64," + js_out;
         JSONObject jsonRes = new JSONObject();
         jsonRes.put("URI", js_out);
+        // send metadata to js
+        jsonRes.put("Width", mWidth);
+        jsonRes.put("Height", mHeight);
+        jsonRes.put("Density", mDensity);
+        jsonRes.put("Rotation", mRotation);
         PluginResult result = new PluginResult(PluginResult.Status.OK, jsonRes);
         mCallbackContext.sendPluginResult(result);
 

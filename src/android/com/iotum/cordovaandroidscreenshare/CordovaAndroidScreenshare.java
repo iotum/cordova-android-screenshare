@@ -23,6 +23,8 @@ import android.view.OrientationEventListener;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
@@ -55,6 +57,9 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
 
   private CallbackContext mCallbackContext;
 
+  private Timer mTimer;
+  private boolean mReady = true;
+
   @Override
   public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
     mCallbackContext = callbackContext;
@@ -77,6 +82,12 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
 
       try {
         image = reader.acquireLatestImage();
+        if (mReady) {
+          mReady = false;
+        } else {
+          return;
+        }
+
         if (image != null) {
           Image.Plane[] planes = image.getPlanes();
           ByteBuffer buffer = planes[0].getBuffer();
@@ -209,6 +220,15 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
       sMediaProjection = mProjectionManager.getMediaProjection(resultCode, data);
 
       if (sMediaProjection != null) {
+        mReady = true;
+        mTimer = new Timer();
+        mTimer.scheduleAtFixedRate(new TimerTask() {
+          @Override
+          public void run() {
+            mReady = true;
+          }
+        }, 200, 200); // start after 200ms, repeat every 200ms
+
         // display metrics
         DisplayMetrics metrics = cordova.getActivity().getResources().getDisplayMetrics();
         mDensity = metrics.densityDpi;
@@ -232,6 +252,8 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   @Override
   public void onDestroy() {
     if (sMediaProjection != null) {
+      mTimer.cancel();
+      mTimer = null;
       sMediaProjection.stop();
     }
   }
@@ -245,6 +267,8 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   }
 
   private void stopProjection() {
+    mTimer.cancel();
+    mTimer = null;
     mHandler.post(new Runnable() {
       @Override
       public void run() {

@@ -94,11 +94,9 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
           bitmap = Bitmap.createBitmap(mWidth + rowPadding / pixelStride, mHeight, Bitmap.Config.ARGB_8888);
           bitmap.copyPixelsFromBuffer(buffer);
 
-          // save bitmap locally
-          mBitmapBuffer = bitmap.copy(Bitmap.Config.ARGB_8888, false);
-
           // Send first frame for startRecord callback
           if (mSendFirstFrame) {
+            mBitmapBuffer = bitmap.copy(Bitmap.Config.ARGB_8888, false);
             sendImage();
           }
         }

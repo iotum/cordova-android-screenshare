@@ -115,33 +115,29 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   }
 
   private void sendImage() {
-    try {
-      // convert bitmap to jpeg based64 URI
-      ByteArrayOutputStream jpeg_data = new ByteArrayOutputStream();
+    // convert bitmap to jpeg based64 URI
+    ByteArrayOutputStream jpeg_data = new ByteArrayOutputStream();
 
-      // continue if there is a stored bitmap in buffer
-      if (mBitmapBuffer.compress(CompressFormat.JPEG, 100, jpeg_data)) {
-        mSendFirstFrame = false;
-        byte[] code = jpeg_data.toByteArray();
-        byte[] output = Base64.encode(code, Base64.NO_WRAP);
-        String js_out = new String(output);
-        js_out = "data:image/jpeg;base64," + js_out;
-        JSONObject jsonRes = new JSONObject();
-        jsonRes.put("URI", js_out);
-        PluginResult result = new PluginResult(PluginResult.Status.OK, jsonRes);
-        mCallbackContext.sendPluginResult(result);
+    // continue if there is a stored bitmap in buffer
+    if (mBitmapBuffer.compress(CompressFormat.JPEG, 100, jpeg_data)) {
+      mSendFirstFrame = false;
+      byte[] code = jpeg_data.toByteArray();
+      byte[] output = Base64.encode(code, Base64.NO_WRAP);
+      String js_out = new String(output);
+      js_out = "data:image/jpeg;base64," + js_out;
+      JSONObject jsonRes = new JSONObject();
+      jsonRes.put("URI", js_out);
+      PluginResult result = new PluginResult(PluginResult.Status.OK, jsonRes);
+      mCallbackContext.sendPluginResult(result);
 
-        js_out = null;
-        output = null;
-        code = null;
-      } else {
-        mCallbackContext.error("Unable to convert bitmap to JPEG");
-      }
-      jpeg_data = null;
-      Log.e(TAG, "captured image");
-    } catch (Exception e) {
-      e.printStackTrace();
+      js_out = null;
+      output = null;
+      code = null;
+    } else {
+      mCallbackContext.error("Unable to convert bitmap to JPEG");
     }
+    jpeg_data = null;
+    Log.e(TAG, "captured image");
   }
 
   private class OrientationChangeCallback extends OrientationEventListener {

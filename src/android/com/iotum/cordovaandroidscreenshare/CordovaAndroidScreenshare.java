@@ -25,6 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.lang.Thread;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
@@ -40,6 +41,12 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   private static final String TAG = CordovaAndroidScreenshare.class.getName();
   private static final int REQUEST_CODE = 100;
   private static final String SCREENCAP_NAME = "screencap";
+  // Allows content to be mirrored on private displays when no content is being shown.
+  // private static final int VIRTUAL_DISPLAY_FLAGS = DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR;
+  // VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY is used in conjunction with VIRTUAL_DISPLAY_FLAG_PUBLIC.
+  // Ordinarily public virtual displays will automatically mirror the content of the default display
+  // if they have no windows of their own. When this flag is specified, the virtual display will only
+  // ever show its own content and will be blanked instead if it has no windows.
   private static final int VIRTUAL_DISPLAY_FLAGS = DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY
       | DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC;
   private static MediaProjection sMediaProjection;
@@ -121,7 +128,7 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
             output = null;
             code = null;
           } else {
-            mCallbackContext.error("Unable to convert bitmap");
+            Log.e(TAG, "Unable to convert bitmap");
           }
 
           jpeg_data = null;
@@ -154,18 +161,23 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
       final int rotation = mDisplay.getRotation();
       if (rotation != mRotation) {
         mRotation = rotation;
-        try {
-          // clean up
-          if (mVirtualDisplay != null)
-            mVirtualDisplay.release();
-          if (mImageReader != null)
-            mImageReader.setOnImageAvailableListener(null, null);
-
-          // re-create virtual display depending on device width / height
-          createVirtualDisplay();
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
+        mTimer.schedule(new TimerTask() {
+          @Override
+          public void run() {
+            // re-create virtual display depending on device width / height
+            try {
+              // try multiple times, as cordova/webview is slow to change the screen resolution
+              for (int l=0; l<=5; l++){
+                if (createVirtualDisplay(false)) {
+                  return;
+                }
+                Thread.sleep(200);
+              }
+            } catch (Exception e) {
+              e.printStackTrace();
+            }
+          }
+        }, 500);
       }
     }
   }
@@ -227,15 +239,16 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
           public void run() {
             mReady = true;
           }
-        }, 200, 200); // start after 200ms, repeat every 200ms
+        }, 200, 200);
 
         // display metrics
         DisplayMetrics metrics = cordova.getActivity().getResources().getDisplayMetrics();
         mDensity = metrics.densityDpi;
         mDisplay = cordova.getActivity().getWindowManager().getDefaultDisplay();
+        mRotation = mDisplay.getRotation();
 
         // create virtual display depending on device width / height
-        createVirtualDisplay();
+        createVirtualDisplay(true);
 
         // register orientation change callback
         mOrientationChangeCallback = new OrientationChangeCallback(cordova.getActivity().getApplicationContext());
@@ -252,8 +265,10 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   @Override
   public void onDestroy() {
     if (sMediaProjection != null) {
-      mTimer.cancel();
-      mTimer = null;
+      if (mTimer != null) {
+        mTimer.cancel();
+        mTimer = null;
+      }
       sMediaProjection.stop();
     }
   }
@@ -267,8 +282,10 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   }
 
   private void stopProjection() {
-    mTimer.cancel();
-    mTimer = null;
+    if (mTimer != null) {
+      mTimer.cancel();
+      mTimer = null;
+    }
     mHandler.post(new Runnable() {
       @Override
       public void run() {
@@ -282,17 +299,27 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   /******************************************
    * Factoring Virtual Display creation
    ****************/
-  private void createVirtualDisplay() {
-    // get width and height
+  private boolean createVirtualDisplay(boolean force) {
+    // Gets the real size of the display without subtracting any window decor or applying any compatibility scale factors.
     Point size = new Point();
-    mDisplay.getSize(size);
+    mDisplay.getRealSize(size);
+    if (!force && mWidth == size.x && mHeight == size.y) {
+      return false;
+    }
     mWidth = size.x;
     mHeight = size.y;
+
+    // clean up
+    if (mVirtualDisplay != null)
+      mVirtualDisplay.release();
+    if (mImageReader != null)
+      mImageReader.close();
 
     // start capture reader
     mImageReader = ImageReader.newInstance(mWidth, mHeight, PixelFormat.RGBA_8888, 2);
     mVirtualDisplay = sMediaProjection.createVirtualDisplay(SCREENCAP_NAME, mWidth, mHeight, mDensity,
         VIRTUAL_DISPLAY_FLAGS, mImageReader.getSurface(), null, mHandler);
     mImageReader.setOnImageAvailableListener(new ImageAvailableListener(), mHandler);
+    return true;
   }
 }

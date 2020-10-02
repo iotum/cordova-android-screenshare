@@ -66,11 +66,26 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
 
   private Timer mTimer;
   private boolean mReady = true;
+  private int mFps;
+  private int mCompression;
+  private int mPendingFps;
+  private int mPendingCompression;
 
   @Override
   public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
     mCallbackContext = callbackContext;
     if (action.equals("startProjection")) {
+      int fps = args.isNull(0) ? 5 : args.getInt(0);
+      int compression = args.isNull(1) ? 100 : args.getInt(1);
+      if (fps <= 0 || fps > 10) {
+        fps = 5;
+      }
+      if (compression <= 0 || compression > 100) {
+        compression = 100;
+      }
+      mPendingFps = fps;
+      mPendingCompression = compression;
+
       startProjection();
       return true;
     } else if (action.equals("stopProjection")) {
@@ -96,24 +111,39 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
         }
 
         if (image != null) {
-          Image.Plane[] planes = image.getPlanes();
-          ByteBuffer buffer = planes[0].getBuffer();
-          int pixelStride = planes[0].getPixelStride();
-          int rowStride = planes[0].getRowStride();
-          int rowPadding = rowStride - pixelStride * mWidth;
+          final Image.Plane[] planes = image.getPlanes();
+          final ByteBuffer buffer = planes[0].getBuffer();
+          final int pixelStride = planes[0].getPixelStride();
+          final int rowStride = planes[0].getRowStride();
+          final int rowPadding = rowStride - pixelStride * mWidth;
 
           // create bitmap
           bitmap = Bitmap.createBitmap(mWidth + rowPadding / pixelStride, mHeight, Bitmap.Config.ARGB_8888);
           bitmap.copyPixelsFromBuffer(buffer);
 
+          // release the memory
+          image.close();
+          image = null;
+
+          // crop out any extra padding
+          if (rowPadding != 0) {
+            final Bitmap cropped = Bitmap.createBitmap(bitmap, 0, 0, mWidth, mHeight);
+            bitmap.recycle();
+            bitmap = cropped;
+          }
+
           // convert bitmap to jpeg based64 URI
-          ByteArrayOutputStream jpeg_data = new ByteArrayOutputStream();
-          if (bitmap.compress(CompressFormat.JPEG, 100, jpeg_data)) {
-            byte[] code = jpeg_data.toByteArray();
-            byte[] output = Base64.encode(code, Base64.NO_WRAP);
-            String js_out = new String(output);
-            js_out = "data:image/jpeg;base64," + js_out;
-            JSONObject jsonRes = new JSONObject();
+          final ByteArrayOutputStream jpeg_data = new ByteArrayOutputStream();
+          if (bitmap.compress(CompressFormat.JPEG, mCompression, jpeg_data)) {
+            // release the memory
+            bitmap.recycle();
+            bitmap = null;
+
+            final byte[] code = jpeg_data.toByteArray();
+
+            final byte[] output = Base64.encode(code, Base64.NO_WRAP);
+            final String js_out = "data:image/jpeg;base64," + new String(output);
+            final JSONObject jsonRes = new JSONObject();
             jsonRes.put("URI", js_out);
             // send metadata to js
             jsonRes.put("Width", mWidth);
@@ -123,15 +153,9 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
             PluginResult result = new PluginResult(PluginResult.Status.OK, jsonRes);
             result.setKeepCallback(true);
             mCallbackContext.sendPluginResult(result);
-
-            js_out = null;
-            output = null;
-            code = null;
           } else {
             Log.e(TAG, "Unable to convert bitmap");
           }
-
-          jpeg_data = null;
 
           Log.e(TAG, "captured image");
         }
@@ -233,13 +257,17 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
 
       if (sMediaProjection != null) {
         mReady = true;
+        mFps = mPendingFps;
+        mCompression = mPendingCompression;
+
+        int interval = 1000 / mFps;
         mTimer = new Timer();
         mTimer.scheduleAtFixedRate(new TimerTask() {
           @Override
           public void run() {
             mReady = true;
           }
-        }, 200, 200);
+        }, interval, interval);
 
         // display metrics
         DisplayMetrics metrics = cordova.getActivity().getResources().getDisplayMetrics();

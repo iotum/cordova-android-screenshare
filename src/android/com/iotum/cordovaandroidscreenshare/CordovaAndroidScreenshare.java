@@ -41,11 +41,16 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   private static final String TAG = CordovaAndroidScreenshare.class.getName();
   private static final int REQUEST_CODE = 100;
   private static final String SCREENCAP_NAME = "screencap";
-  // Allows content to be mirrored on private displays when no content is being shown.
-  // private static final int VIRTUAL_DISPLAY_FLAGS = DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR;
-  // VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY is used in conjunction with VIRTUAL_DISPLAY_FLAG_PUBLIC.
-  // Ordinarily public virtual displays will automatically mirror the content of the default display
-  // if they have no windows of their own. When this flag is specified, the virtual display will only
+  // Allows content to be mirrored on private displays when no content is being
+  // shown.
+  // private static final int VIRTUAL_DISPLAY_FLAGS =
+  // DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR;
+  // VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY is used in conjunction with
+  // VIRTUAL_DISPLAY_FLAG_PUBLIC.
+  // Ordinarily public virtual displays will automatically mirror the content of
+  // the default display
+  // if they have no windows of their own. When this flag is specified, the
+  // virtual display will only
   // ever show its own content and will be blanked instead if it has no windows.
   private static final int VIRTUAL_DISPLAY_FLAGS = DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY
       | DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC;
@@ -90,6 +95,9 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
       return true;
     } else if (action.equals("stopProjection")) {
       stopProjection();
+      return true;
+    } else if (action.equals("ping")) {
+      callbackContext.success("pong");
       return true;
     }
     callbackContext.error("action not found");
@@ -183,8 +191,9 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
           public void run() {
             // re-create virtual display depending on device width / height
             try {
-              // try multiple times, as cordova/webview is slow to change the screen resolution
-              for (int l=0; l<=5; l++){
+              // try multiple times, as cordova/webview is slow to change the screen
+              // resolution
+              for (int l = 0; l <= 5; l++) {
                 if (createVirtualDisplay(false)) {
                   return;
                 }
@@ -321,7 +330,8 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
    * Factoring Virtual Display creation
    ****************/
   private boolean createVirtualDisplay(boolean force) {
-    // Gets the real size of the display without subtracting any window decor or applying any compatibility scale factors.
+    // Gets the real size of the display without subtracting any window decor or
+    // applying any compatibility scale factors.
     Point size = new Point();
     mDisplay.getRealSize(size);
     if (!force && mWidth == size.x && mHeight == size.y) {

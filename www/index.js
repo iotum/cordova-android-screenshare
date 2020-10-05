@@ -18,5 +18,8 @@ module.exports = {
       'stopProjection',
       null
     )
+  },
+  ping: (callback) => {
+    cordova.exec(response => callback(response), null, MODULE_NAME, 'ping', null)
   }
 }

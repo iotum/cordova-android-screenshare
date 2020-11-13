@@ -340,6 +340,7 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   private void startForegroundService() {
     // Set the info for the views that show in the notification panel.
     final Notification notification = new Notification.Builder(this)
+			.setSmallIcon(getResources().getIdentifier((String) extras.get("icon"), "drawable", context.getPackageName()))
 			.setContentTitle(mNotificationTitle)
 			.setContentText(mNotificationText)
       .setOngoing(true)

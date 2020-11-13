@@ -118,8 +118,41 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   @Override
 	public int onStartCommand(final Intent intent, final int flags, final int startId) {
     if (intent.getAction().equals("start")) {
-      cordova.setActivityResultCallback(this);
-      cordova.startActivityForResult(this, mProjectionManager.createScreenCaptureIntent(), REQUEST_CODE);
+      // Start the screenshare
+      sMediaProjection = mProjectionManager.getMediaProjection(resultCode, data);
+
+      if (sMediaProjection != null) {
+        mReady = true;
+        mFps = mPendingFps;
+        mCompression = mPendingCompression;
+
+        int interval = 1000 / mFps;
+        mTimer = new Timer();
+        mTimer.scheduleAtFixedRate(new TimerTask() {
+          @Override
+          public void run() {
+            mReady = true;
+          }
+        }, interval, interval);
+
+        // display metrics
+        DisplayMetrics metrics = cordova.getActivity().getResources().getDisplayMetrics();
+        mDensity = metrics.densityDpi;
+        mDisplay = cordova.getActivity().getWindowManager().getDefaultDisplay();
+        mRotation = mDisplay.getRotation();
+
+        // create virtual display depending on device width / height
+        createVirtualDisplay(true);
+
+        // register orientation change callback
+        mOrientationChangeCallback = new OrientationChangeCallback(cordova.getActivity().getApplicationContext());
+        if (mOrientationChangeCallback.canDetectOrientation()) {
+          mOrientationChangeCallback.enable();
+        }
+
+        // register media projection stop callback
+        sMediaProjection.registerCallback(new MediaProjectionStopCallback(), mHandler);
+      }
     }
     return START_STICKY;
   }
@@ -278,42 +311,8 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   @Override
   public void onActivityResult(int requestCode, int resultCode, Intent data) {
     if (requestCode == REQUEST_CODE) {
-      sMediaProjection = mProjectionManager.getMediaProjection(resultCode, data);
-
-      if (sMediaProjection != null) {
-        mReady = true;
-        mFps = mPendingFps;
-        mCompression = mPendingCompression;
-
-        int interval = 1000 / mFps;
-        mTimer = new Timer();
-        mTimer.scheduleAtFixedRate(new TimerTask() {
-          @Override
-          public void run() {
-            mReady = true;
-          }
-        }, interval, interval);
-
-        // display metrics
-        DisplayMetrics metrics = cordova.getActivity().getResources().getDisplayMetrics();
-        mDensity = metrics.densityDpi;
-        mDisplay = cordova.getActivity().getWindowManager().getDefaultDisplay();
-        mRotation = mDisplay.getRotation();
-
-        // create virtual display depending on device width / height
-        createVirtualDisplay(true);
-
-        // register orientation change callback
-        mOrientationChangeCallback = new OrientationChangeCallback(cordova.getActivity().getApplicationContext());
-        if (mOrientationChangeCallback.canDetectOrientation()) {
-          mOrientationChangeCallback.enable();
-        }
-
-        // register media projection stop callback
-        sMediaProjection.registerCallback(new MediaProjectionStopCallback(), mHandler);
-      }
-    } else {
-      stopForeground(true);
+      // start the foreground service that will start screen sharing
+      startForegroundService();
     }
   }
 
@@ -351,8 +350,8 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   }
 
   private void startProjection() {
-    // start the foreground service that will start screen sharing
-    startForegroundService();
+    cordova.setActivityResultCallback(this);
+    cordova.startActivityForResult(this, mProjectionManager.createScreenCaptureIntent(), REQUEST_CODE);
   }
 
   private void stopProjection() {

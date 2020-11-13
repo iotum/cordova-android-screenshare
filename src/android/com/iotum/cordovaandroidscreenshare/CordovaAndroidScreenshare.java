@@ -347,7 +347,7 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
 			.build();
 
     startForeground(mNotificationId, notification);
-    mNotificationManager.notify(NOTIFICATION, notification);
+    mNotificationManager.notify(mNotificationId, notification);
   }
 
   private void startProjection() {

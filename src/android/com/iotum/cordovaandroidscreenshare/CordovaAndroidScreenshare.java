@@ -325,6 +325,11 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
       }
       sMediaProjection.stop();
     }
+    if (mNotificationManager != null) {
+      mNotificationManager.cancel(NOTIFICATION);
+      mNotificationManager = null;
+    }
+    stopForeground(true);
   }
 
   /******************************************
@@ -359,12 +364,12 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
       public void run() {
         if (sMediaProjection != null) {
           sMediaProjection.stop();
-          stopForeground(true);
         }
         if (mNotificationManager != null) {
 			    mNotificationManager.cancel(NOTIFICATION);
           mNotificationManager = null;
         }
+        stopForeground(true);
       }
     });
   }

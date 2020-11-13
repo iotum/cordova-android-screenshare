@@ -326,7 +326,7 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
       sMediaProjection.stop();
     }
     if (mNotificationManager != null) {
-      mNotificationManager.cancel(mNotificationId);
+      mNotificationManager.cancel(NOTIFICATION);
       mNotificationManager = null;
     }
     stopForeground(true);
@@ -366,7 +366,7 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
           sMediaProjection.stop();
         }
         if (mNotificationManager != null) {
-			    mNotificationManager.cancel(mNotificationId);
+			    mNotificationManager.cancel(NOTIFICATION);
           mNotificationManager = null;
         }
         stopForeground(true);

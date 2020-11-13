@@ -1,6 +1,8 @@
 package com.iotum.cordovaandroidscreenshare;
 
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -55,6 +57,7 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   private static final int VIRTUAL_DISPLAY_FLAGS = DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY
       | DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC;
   private static MediaProjection sMediaProjection;
+  private NotificationManager mNotificationManager;
 
   private MediaProjectionManager mProjectionManager;
   private ImageReader mImageReader;
@@ -75,6 +78,9 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   private int mCompression;
   private int mPendingFps;
   private int mPendingCompression;
+  private int mNotificationId = 1;
+  private String mNotificationTitle;
+  private String mNotificationText;
 
   @Override
   public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
@@ -82,6 +88,8 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
     if (action.equals("startProjection")) {
       int fps = args.isNull(0) ? 5 : args.getInt(0);
       int compression = args.isNull(1) ? 100 : args.getInt(1);
+      mNotificationTitle = args.getString(2);
+      mNotificationText = args.getString(3);
       if (fps <= 0 || fps > 10) {
         fps = 5;
       }
@@ -90,7 +98,9 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
       }
       mPendingFps = fps;
       mPendingCompression = compression;
+      mNotificationId += 1;
 
+      // starts foreground service that will call startProjection
       startProjection();
       return true;
     } else if (action.equals("stopProjection")) {
@@ -102,6 +112,49 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
     }
     callbackContext.error("action not found");
     return false;
+  }
+
+  // on foreground service starting, start screen sharing
+  @Override
+	public int onStartCommand(final Intent intent, final int flags, final int startId) {
+    if (intent.getAction().equals("start")) {
+      // Start the screenshare
+      sMediaProjection = mProjectionManager.getMediaProjection(resultCode, data);
+
+      if (sMediaProjection != null) {
+        mReady = true;
+        mFps = mPendingFps;
+        mCompression = mPendingCompression;
+
+        int interval = 1000 / mFps;
+        mTimer = new Timer();
+        mTimer.scheduleAtFixedRate(new TimerTask() {
+          @Override
+          public void run() {
+            mReady = true;
+          }
+        }, interval, interval);
+
+        // display metrics
+        DisplayMetrics metrics = cordova.getActivity().getResources().getDisplayMetrics();
+        mDensity = metrics.densityDpi;
+        mDisplay = cordova.getActivity().getWindowManager().getDefaultDisplay();
+        mRotation = mDisplay.getRotation();
+
+        // create virtual display depending on device width / height
+        createVirtualDisplay(true);
+
+        // register orientation change callback
+        mOrientationChangeCallback = new OrientationChangeCallback(cordova.getActivity().getApplicationContext());
+        if (mOrientationChangeCallback.canDetectOrientation()) {
+          mOrientationChangeCallback.enable();
+        }
+
+        // register media projection stop callback
+        sMediaProjection.registerCallback(new MediaProjectionStopCallback(), mHandler);
+      }
+    }
+    return START_STICKY;
   }
 
   private class ImageAvailableListener implements ImageReader.OnImageAvailableListener {
@@ -240,6 +293,9 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
     mProjectionManager = (MediaProjectionManager) cordova.getActivity()
         .getSystemService(Context.MEDIA_PROJECTION_SERVICE);
 
+    // inits the notification
+    mNotificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+
     // start capture handling thread
     new Thread() {
       @Override
@@ -255,40 +311,8 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   @Override
   public void onActivityResult(int requestCode, int resultCode, Intent data) {
     if (requestCode == REQUEST_CODE) {
-      sMediaProjection = mProjectionManager.getMediaProjection(resultCode, data);
-
-      if (sMediaProjection != null) {
-        mReady = true;
-        mFps = mPendingFps;
-        mCompression = mPendingCompression;
-
-        int interval = 1000 / mFps;
-        mTimer = new Timer();
-        mTimer.scheduleAtFixedRate(new TimerTask() {
-          @Override
-          public void run() {
-            mReady = true;
-          }
-        }, interval, interval);
-
-        // display metrics
-        DisplayMetrics metrics = cordova.getActivity().getResources().getDisplayMetrics();
-        mDensity = metrics.densityDpi;
-        mDisplay = cordova.getActivity().getWindowManager().getDefaultDisplay();
-        mRotation = mDisplay.getRotation();
-
-        // create virtual display depending on device width / height
-        createVirtualDisplay(true);
-
-        // register orientation change callback
-        mOrientationChangeCallback = new OrientationChangeCallback(cordova.getActivity().getApplicationContext());
-        if (mOrientationChangeCallback.canDetectOrientation()) {
-          mOrientationChangeCallback.enable();
-        }
-
-        // register media projection stop callback
-        sMediaProjection.registerCallback(new MediaProjectionStopCallback(), mHandler);
-      }
+      // start the foreground service that will start screen sharing
+      startForegroundService();
     }
   }
 
@@ -306,6 +330,20 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   /******************************************
    * UI Widget Callbacks
    *******************************/
+
+  private void startForegroundService() {
+    // Set the info for the views that show in the notification panel.
+    final Notification notification = new Notification.Builder(this)
+			.setSmallIcon(getResources().getIdentifier((String) extras.get("icon"), "drawable", context.getPackageName()))
+			.setContentTitle(mNotificationTitle)
+			.setContentText(mNotificationText)
+      .setOngoing(true)
+			.build();
+
+    startForeground(mNotificationId, notification);
+    mNotificationManager.notify(NOTIFICATION, notification);
+  }
+
   private void startProjection() {
     cordova.setActivityResultCallback(this);
     cordova.startActivityForResult(this, mProjectionManager.createScreenCaptureIntent(), REQUEST_CODE);
@@ -321,6 +359,11 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
       public void run() {
         if (sMediaProjection != null) {
           sMediaProjection.stop();
+          stopForeground(true);
+        }
+        if (mNotificationManager != null) {
+			    mNotificationManager.cancel(NOTIFICATION);
+          mNotificationManager = null;
         }
       }
     });

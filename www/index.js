@@ -1,13 +1,13 @@
 const MODULE_NAME = 'CordovaAndroidScreenshare';
 
 module.exports = {
-  startScreenshare: (callback, fps, compression) => {
+  startScreenshare: (callback, fps, compression, title, text) => {
     cordova.exec(
       response => callback(null, response),
       error => callback(error),
       MODULE_NAME,
       'startProjection',
-      [fps, compression]
+      [fps, compression, title, text]
     )
   },
   stopScreenshare: (callback) => {

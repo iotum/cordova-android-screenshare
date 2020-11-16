@@ -1,5 +1,6 @@
 package com.iotum;
 
+import android.R;
 import android.annotation.TargetApi;
 import android.support.v4.app.NotificationCompat;
 import android.app.Notification;

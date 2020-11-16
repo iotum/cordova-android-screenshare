@@ -5,9 +5,11 @@ import android.app.Notification;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.v7.app.NotificationCompat;
 
 public class MediaProjectionService extends Service {
     private static final String TAG = CordovaAndroidScreenshare.class.getName();

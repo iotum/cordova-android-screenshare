@@ -260,6 +260,7 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
         sMediaProjection = mProjectionManager.getMediaProjection(resultCode, data);
 
         if (sMediaProjection != null) {
+          Activity activity = cordova.getActivity();
           mReady = true;
           mFps = mPendingFps;
           mCompression = mPendingCompression;

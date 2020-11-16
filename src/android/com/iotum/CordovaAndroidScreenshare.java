@@ -256,39 +256,42 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   public void onActivityResult(int requestCode, int resultCode, Intent data) {
     Activity activity = cordova.getActivity();
     if (requestCode == REQUEST_CODE) {
-      sMediaProjection = mProjectionManager.getMediaProjection(resultCode, data);
+      // only continue if permission is granted
+      if (resultCode !== 0) {
+        sMediaProjection = mProjectionManager.getMediaProjection(resultCode, data);
 
-      if (sMediaProjection != null) {
-        mReady = true;
-        mFps = mPendingFps;
-        mCompression = mPendingCompression;
+        if (sMediaProjection != null) {
+          mReady = true;
+          mFps = mPendingFps;
+          mCompression = mPendingCompression;
 
-        int interval = 1000 / mFps;
-        mTimer = new Timer();
-        mTimer.scheduleAtFixedRate(new TimerTask() {
-          @Override
-          public void run() {
-            mReady = true;
+          int interval = 1000 / mFps;
+          mTimer = new Timer();
+          mTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+              mReady = true;
+            }
+          }, interval, interval);
+
+          // display metrics
+          DisplayMetrics metrics = activity.getResources().getDisplayMetrics();
+          mDensity = metrics.densityDpi;
+          mDisplay = activity.getWindowManager().getDefaultDisplay();
+          mRotation = mDisplay.getRotation();
+
+          // create virtual display depending on device width / height
+          createVirtualDisplay(true);
+
+          // register orientation change callback
+          mOrientationChangeCallback = new OrientationChangeCallback(activity.getApplicationContext());
+          if (mOrientationChangeCallback.canDetectOrientation()) {
+            mOrientationChangeCallback.enable();
           }
-        }, interval, interval);
 
-        // display metrics
-        DisplayMetrics metrics = activity.getResources().getDisplayMetrics();
-        mDensity = metrics.densityDpi;
-        mDisplay = activity.getWindowManager().getDefaultDisplay();
-        mRotation = mDisplay.getRotation();
-
-        // create virtual display depending on device width / height
-        createVirtualDisplay(true);
-
-        // register orientation change callback
-        mOrientationChangeCallback = new OrientationChangeCallback(activity.getApplicationContext());
-        if (mOrientationChangeCallback.canDetectOrientation()) {
-          mOrientationChangeCallback.enable();
+          // register media projection stop callback
+          sMediaProjection.registerCallback(new MediaProjectionStopCallback(), mHandler);
         }
-
-        // register media projection stop callback
-        sMediaProjection.registerCallback(new MediaProjectionStopCallback(), mHandler);
       } else {
         // Permission denied, stop the foreground service 
         Intent intent = new Intent(activity, MediaProjectionService.class);

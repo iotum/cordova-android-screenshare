@@ -306,6 +306,11 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
         mTimer = null;
       }
       sMediaProjection.stop();
+      // Stop the foreground service
+      Intent intent = new Intent(activity, MediaProjectionService.class);
+      // Tell the service we want to start it
+      intent.setAction("stop");
+      activity.getApplicationContext().startForegroundService(intent);
     }
   }
 

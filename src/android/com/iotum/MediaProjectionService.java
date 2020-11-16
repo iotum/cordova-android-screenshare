@@ -14,8 +14,6 @@ import android.support.annotation.Nullable;
 
 public class MediaProjectionService extends Service {
     private static final String TAG = CordovaAndroidScreenshare.class.getName();
-    private String mNotificationTitle = "Sharing your screen";
-    private String mNotificationText = "Everything on screen will be shared.";
     private int mNotificationId = 0;
 
     @Override
@@ -31,12 +29,12 @@ public class MediaProjectionService extends Service {
             getSystemService(NotificationManager.class).createNotificationChannel(channel);
 
             mNotificationId += 1;
-            Notification.Builder builder = new Notification.Builder(context, "foreground.service.channel")
-                    .setContentTitle(mNotificationTitle)
-                    .setContentText(mNotificationText)
-                    .setOngoing(true);
+            Notifcation notification = new Notification.Builder(context, "foreground.service.channel")
+                    .setContentTitle("Sharing your screen")
+                    .setContentText("Everything on screen will be shared.")
+                    .setOngoing(true)
+                    .build();
 
-            Notification notification = builder.build();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 startForeground(mNotificationId, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION);
             } else {

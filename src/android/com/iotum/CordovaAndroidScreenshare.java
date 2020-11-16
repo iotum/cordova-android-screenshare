@@ -254,6 +254,7 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
 
   @Override
   public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    Activity activity = cordova.getActivity();
     if (requestCode == REQUEST_CODE) {
       sMediaProjection = mProjectionManager.getMediaProjection(resultCode, data);
 
@@ -291,7 +292,6 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
       }
     } else {
       // Permission denied, stop the foreground service
-      Activity activity = cordova.getActivity();
       Intent intent = new Intent(activity, MediaProjectionService.class);
       intent.setAction("stop");
       activity.getApplicationContext().startForegroundService(intent);

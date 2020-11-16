@@ -75,6 +75,7 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   private int mCompression;
   private int mPendingFps;
   private int mPendingCompression;
+  private boolean disabledWebViewOptimizations = false;
 
   @Override
   public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
@@ -91,6 +92,9 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
       mPendingFps = fps;
       mPendingCompression = compression;
 
+      if (!disabledWebViewOptimizations) {
+        disableWebViewOptimizations();
+      }
       startProjection();
       return true;
     } else if (action.equals("stopProjection")) {
@@ -362,5 +366,31 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
         VIRTUAL_DISPLAY_FLAGS, mImageReader.getSurface(), null, mHandler);
     mImageReader.setOnImageAvailableListener(new ImageAvailableListener(), mHandler);
     return true;
+  }
+
+  // enables media playback in the background, needed for Facetalk to extract the mediaStream
+  private void disableWebViewOptimizations() {
+    disabledWebViewOptimizations = true;
+    Thread thread = new Thread(){
+      public void run() {
+        try {
+          Thread.sleep(1000);
+          getApp().runOnUiThread(() -> {
+            View view = webView.getEngine().getView();
+
+            try {
+              Class.forName("org.crosswalk.engine.XWalkCordovaView")
+                   .getMethod("onShow")
+                   .invoke(view);
+            } catch (Exception e){
+              view.dispatchWindowVisibilityChanged(View.VISIBLE);
+            }
+          });
+        } catch (InterruptedException e) {
+            // do nothing
+        }
+      }
+    };
+    thread.start();
   }
 }

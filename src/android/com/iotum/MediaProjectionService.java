@@ -27,7 +27,7 @@ public class MediaProjectionService extends Service {
             manager.deleteNotificationChannel("foreground.service.channel");
 
             // Create notification channel
-            NotificationChannel channel = new NotificationChannel("foreground.service.channel", "Background Services", NotificationManager.IMPORTANCE_DEFAULT);
+            NotificationChannel channel = new NotificationChannel("foreground.service.channel", "Background Services", NotificationManager.IMPORTANCE_LOW);
             getSystemService(NotificationManager.class).createNotificationChannel(channel);
 
             mNotificationId += 1;

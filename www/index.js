@@ -19,9 +19,6 @@ module.exports = {
       null
     )
   },
-  disableWebViewOptimizations: () => {
-    cordova.exec(null, null, 'MODULE_NAME', 'disableWebViewOptimizations', null);
-  },
   ping: (callback) => {
     cordova.exec(response => callback(response), null, MODULE_NAME, 'ping', null)
   }

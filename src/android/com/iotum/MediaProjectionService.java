@@ -1,6 +1,7 @@
 package com.iotum;
 
 import android.annotation.TargetApi;
+import android.support.v4.app.NotificationCompat;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -29,7 +30,7 @@ public class MediaProjectionService extends Service {
             getSystemService(NotificationManager.class).createNotificationChannel(channel);
 
             mNotificationId += 1;
-            Notification notification = new Notification.Builder(context, "foreground.service.channel")
+            Notification notification = new NotificationCompat.Builder(context, "foreground.service.channel")
                     .setContentTitle("Sharing your screen")
                     .setContentText("Everything on screen will be shared.")
                     .setOngoing(true)

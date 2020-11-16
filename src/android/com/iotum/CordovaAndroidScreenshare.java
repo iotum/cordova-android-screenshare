@@ -254,7 +254,6 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
 
   @Override
   public void onActivityResult(int requestCode, int resultCode, Intent data) {
-    Activity activity = cordova.getActivity();
     if (requestCode == REQUEST_CODE) {
       // only continue if permission is granted
       if (resultCode != 0) {

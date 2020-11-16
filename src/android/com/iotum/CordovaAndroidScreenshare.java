@@ -302,6 +302,7 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   @Override
   public void onDestroy() {
     if (sMediaProjection != null) {
+      Activity activity = cordova.getActivity();
       if (mTimer != null) {
         mTimer.cancel();
         mTimer = null;

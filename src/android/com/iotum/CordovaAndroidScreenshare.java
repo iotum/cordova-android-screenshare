@@ -296,7 +296,7 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
         Activity activity = cordova.getActivity();
         Intent intent = new Intent(activity, MediaProjectionService.class);
         intent.setAction("stop");
-        activity.getApplicationContext().startForegroundService(intent);
+        activity.getApplicationContext().startService(intent);
       }
     }
   }
@@ -314,7 +314,7 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
       Activity activity = cordova.getActivity();
       Intent intent = new Intent(activity, MediaProjectionService.class);
       intent.setAction("stop");
-      activity.getApplicationContext().startForegroundService(intent);
+      activity.getApplicationContext().startService(intent);
     }
   }
 
@@ -329,7 +329,7 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
     Activity activity = cordova.getActivity();
     Intent intent = new Intent(activity, MediaProjectionService.class);
     intent.setAction("start");
-    activity.getApplicationContext().startForegroundService(intent);
+    activity.getApplicationContext().startService(intent);
   }
 
   private void stopProjection() {
@@ -345,7 +345,7 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
           Activity activity = cordova.getActivity();
           Intent intent = new Intent(activity, MediaProjectionService.class);
           intent.setAction("stop");
-          activity.getApplicationContext().startForegroundService(intent);
+          activity.getApplicationContext().startService(intent);
         }
       }
     });

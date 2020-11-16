@@ -17,16 +17,17 @@ import android.support.annotation.Nullable;
 public class MediaProjectionService extends Service {
     private static final String TAG = CordovaAndroidScreenshare.class.getName();
     private int mNotificationId = 0;
-    private NotificationChannel mChannel;
+    private boolean mNotificationChannelExists = false;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Context context = getApplicationContext();
         if (intent.getAction().equals("start")) {
-            if (!mChannel) {
+            if (!mNotificationChannelExists) {
                 // Create notification channel
-                mChannel = new NotificationChannel("foreground.service.channel", "Background Services", NotificationManager.IMPORTANCE_LOW);
+                NotificationChannel channel = new NotificationChannel("foreground.service.channel", "Background Services", NotificationManager.IMPORTANCE_LOW);
                 getSystemService(NotificationManager.class).createNotificationChannel(channel);
+                mNotificationChannelExists = true;
             }
 
             mNotificationId += 1;

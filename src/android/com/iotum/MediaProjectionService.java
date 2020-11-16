@@ -31,6 +31,7 @@ public class MediaProjectionService extends Service {
 
             mNotificationId += 1;
             Notification notification = new NotificationCompat.Builder(context, "foreground.service.channel")
+                    .setSmallIcon(android.R.drawable.notification_icon)
                     .setContentTitle("Sharing your screen")
                     .setContentText("Everything on screen will be shared.")
                     .setOngoing(true)

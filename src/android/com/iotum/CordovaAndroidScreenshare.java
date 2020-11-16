@@ -260,7 +260,6 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
         sMediaProjection = mProjectionManager.getMediaProjection(resultCode, data);
 
         if (sMediaProjection != null) {
-          Activity activity = cordova.getActivity();
           mReady = true;
           mFps = mPendingFps;
           mCompression = mPendingCompression;
@@ -275,16 +274,16 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
           }, interval, interval);
 
           // display metrics
-          DisplayMetrics metrics = activity.getResources().getDisplayMetrics();
+          DisplayMetrics metrics = cordova.getActivity().getResources().getDisplayMetrics();
           mDensity = metrics.densityDpi;
-          mDisplay = activity.getWindowManager().getDefaultDisplay();
+          mDisplay = cordova.getActivity().getWindowManager().getDefaultDisplay();
           mRotation = mDisplay.getRotation();
 
           // create virtual display depending on device width / height
           createVirtualDisplay(true);
 
           // register orientation change callback
-          mOrientationChangeCallback = new OrientationChangeCallback(activity.getApplicationContext());
+          mOrientationChangeCallback = new OrientationChangeCallback(cordova.getActivity().getApplicationContext());
           if (mOrientationChangeCallback.canDetectOrientation()) {
             mOrientationChangeCallback.enable();
           }

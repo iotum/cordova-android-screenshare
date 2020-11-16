@@ -9,7 +9,6 @@ import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.support.v7.app.NotificationCompat;
 
 public class MediaProjectionService extends Service {
     private static final String TAG = CordovaAndroidScreenshare.class.getName();
@@ -22,27 +21,15 @@ public class MediaProjectionService extends Service {
         Context context = getApplicationContext();
         if (intent.getAction().equals("start")) {
             mNotificationId += 1;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                Notification.Builder builder = new Notification.Builder(context, "foreground.service.channel")
-                        .setContentTitle(mNotificationTitle)
-                        .setContentText(mNotificationText)
-                        .setOngoing(true);
+            Notification.Builder builder = new Notification.Builder(context, "foreground.service.channel")
+                    .setContentTitle(mNotificationTitle)
+                    .setContentText(mNotificationText)
+                    .setOngoing(true);
 
-                Notification notification = builder.build();
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    startForeground(mNotificationId, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION);
-                } else {
-                    startForeground(mNotificationId, notification);
-                }
+            Notification notification = builder.build();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                startForeground(mNotificationId, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION);
             } else {
-                NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
-                        .setContentTitle(mNotificationTitle)
-                        .setContentText(mNotificationText)
-                        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                        .setOngoing(true);
-
-                Notification notification = builder.build();
-
                 startForeground(mNotificationId, notification);
             }
         } else {

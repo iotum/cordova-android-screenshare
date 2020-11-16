@@ -2,6 +2,8 @@ package com.iotum;
 
 import android.annotation.TargetApi;
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -20,6 +22,14 @@ public class MediaProjectionService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Context context = getApplicationContext();
         if (intent.getAction().equals("start")) {
+            // Delete notification channel if it already exists
+            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            manager.deleteNotificationChannel("foreground.service.channel");
+
+            // Create notification channel
+            NotificationChannel channel = new NotificationChannel("foreground.service.channel", "Background Services", NotificationManager.IMPORTANCE_DEFAULT);
+            getSystemService(NotificationManager.class).createNotificationChannel(channel);
+
             mNotificationId += 1;
             Notification.Builder builder = new Notification.Builder(context, "foreground.service.channel")
                     .setContentTitle(mNotificationTitle)

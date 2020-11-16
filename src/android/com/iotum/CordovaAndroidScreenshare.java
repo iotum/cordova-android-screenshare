@@ -97,8 +97,6 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
     } else if (action.equals("stopProjection")) {
       stopProjection();
       return true;
-    } else if (action.equals("disableWebViewOptimizations")) {
-      disableWebViewOptimizations();
     } else if (action.equals("ping")) {
       callbackContext.success("pong");
       return true;

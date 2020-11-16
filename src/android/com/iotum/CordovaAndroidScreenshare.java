@@ -255,6 +255,7 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   @Override
   public void onActivityResult(int requestCode, int resultCode, Intent data) {
     if (requestCode == REQUEST_CODE) {
+      Activity activity = cordova.getActivity();
       // Start the foreground service
       Intent intent = new Intent(activity, MediaProjectionService.class);
       // Tell the service we want to start it
@@ -278,16 +279,16 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
         }, interval, interval);
 
         // display metrics
-        DisplayMetrics metrics = cordova.getActivity().getResources().getDisplayMetrics();
+        DisplayMetrics metrics = activity.getResources().getDisplayMetrics();
         mDensity = metrics.densityDpi;
-        mDisplay = cordova.getActivity().getWindowManager().getDefaultDisplay();
+        mDisplay = activity.getWindowManager().getDefaultDisplay();
         mRotation = mDisplay.getRotation();
 
         // create virtual display depending on device width / height
         createVirtualDisplay(true);
 
         // register orientation change callback
-        mOrientationChangeCallback = new OrientationChangeCallback(cordova.getActivity().getApplicationContext());
+        mOrientationChangeCallback = new OrientationChangeCallback(activity.getApplicationContext());
         if (mOrientationChangeCallback.canDetectOrientation()) {
           mOrientationChangeCallback.enable();
         }
@@ -318,7 +319,6 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
    * UI Widget Callbacks
    *******************************/
   private void startProjection() {
-    Activity activity = cordova.getActivity();
     cordova.setActivityResultCallback(this);
     cordova.startActivityForResult(this, mProjectionManager.createScreenCaptureIntent(), REQUEST_CODE);
   }

@@ -29,7 +29,7 @@ public class MediaProjectionService extends Service {
             getSystemService(NotificationManager.class).createNotificationChannel(channel);
 
             mNotificationId += 1;
-            Notifcation notification = new Notification.Builder(context, "foreground.service.channel")
+            Notification notification = new Notification.Builder(context, "foreground.service.channel")
                     .setContentTitle("Sharing your screen")
                     .setContentText("Everything on screen will be shared.")
                     .setOngoing(true)

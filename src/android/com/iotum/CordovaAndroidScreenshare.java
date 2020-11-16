@@ -18,7 +18,6 @@ import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Base64;
-import android.view.View;
 import android.view.Display;
 import android.view.OrientationEventListener;
 
@@ -304,7 +303,6 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   @Override
   public void onDestroy() {
     if (sMediaProjection != null) {
-      
       if (mTimer != null) {
         mTimer.cancel();
         mTimer = null;

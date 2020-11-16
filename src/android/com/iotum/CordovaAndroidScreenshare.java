@@ -307,15 +307,17 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
    * UI Widget Callbacks
    *******************************/
   private void startProjection() {
-    Intent intent = new Intent(this, MediaProjectionService.class);
+    Activity activity = cordova.getActivity();
+    Intent intent = new Intent(activity, MediaProjectionService.class);
     // Tell the service we want to start it
     intent.setAction("start");
-    startForegroundService(intent);
+    activity.getApplicationContext().startForegroundService(intent);
     cordova.setActivityResultCallback(this);
     cordova.startActivityForResult(this, mProjectionManager.createScreenCaptureIntent(), REQUEST_CODE);
   }
 
   private void stopProjection() {
+    Activity activity = cordova.getActivity();
     if (mTimer != null) {
       mTimer.cancel();
       mTimer = null;
@@ -325,10 +327,10 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
       public void run() {
         if (sMediaProjection != null) {
           sMediaProjection.stop();
-          Intent intent = new Intent(this, MediaProjectionService.class);
+          Intent intent = new Intent(activity, MediaProjectionService.class);
           // Tell the service we want to start it
           intent.setAction("stop");
-          startForegroundService(intent);
+          activity.getApplicationContext().startForegroundService(intent);
         }
       }
     });

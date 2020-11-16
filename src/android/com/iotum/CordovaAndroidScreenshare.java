@@ -257,12 +257,6 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
     if (requestCode == REQUEST_CODE) {
       // only continue if permission is granted
       if (resultCode != 0) {
-        // Start a mandatory MediaProjection foreground service with a notification for Android SDK 29
-        Activity activity = cordova.getActivity();
-        Intent intent = new Intent(activity, MediaProjectionService.class);
-        intent.setAction("start");
-        activity.getApplicationContext().startForegroundService(intent);
-
         sMediaProjection = mProjectionManager.getMediaProjection(resultCode, data);
 
         if (sMediaProjection != null) {
@@ -325,6 +319,11 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
     // Request permission to capture screen
     cordova.setActivityResultCallback(this);
     cordova.startActivityForResult(this, mProjectionManager.createScreenCaptureIntent(), REQUEST_CODE);
+    // Start a mandatory MediaProjection foreground service with a notification for Android SDK 29
+    Activity activity = cordova.getActivity();
+    Intent intent = new Intent(activity, MediaProjectionService.class);
+    intent.setAction("start");
+    activity.getApplicationContext().startForegroundService(intent);
   }
 
   private void stopProjection() {

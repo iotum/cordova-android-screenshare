@@ -31,7 +31,7 @@ public class MediaProjectionService extends Service {
 
             mNotificationId += 1;
             Notification notification = new NotificationCompat.Builder(context, "foreground.service.channel")
-                    .setSmallIcon(cordova.getContext().getApplicationInfo().icon)
+                    .setSmallIcon(getIconResId())
                     .setContentTitle("Sharing your screen")
                     .setContentText("Everything on screen will be shared.")
                     .setOngoing(true)
@@ -54,5 +54,18 @@ public class MediaProjectionService extends Service {
     @Override
     public IBinder onBind(final Intent intent) {
         return null;
+    }
+
+    private int getIconResId()
+    {
+        Resources res  = getResources();
+        String pkgName = getPackageName();
+
+        int resId = res.getIdentifier("icon", "mipmap", pkgName);
+        if (resId == 0) {
+            resId = res.getIdentifier("icon", "drawable", pkgName);
+        }
+
+        return resId;
     }
 }

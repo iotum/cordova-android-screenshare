@@ -255,10 +255,10 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   @Override
   public void onActivityResult(int requestCode, int resultCode, Intent data) {
     if (requestCode == REQUEST_CODE) {
+      // Only start the MediaProjection foreground service if MediaProjection request is accepted
+      // The service is an empty foreground service with a notification, for Android SDK 29 security purposes
       Activity activity = cordova.getActivity();
-      // Start the foreground service
       Intent intent = new Intent(activity, MediaProjectionService.class);
-      // Tell the service we want to start it
       intent.setAction("start");
       activity.getApplicationContext().startForegroundService(intent);
 
@@ -302,15 +302,15 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   @Override
   public void onDestroy() {
     if (sMediaProjection != null) {
-      Activity activity = cordova.getActivity();
+      
       if (mTimer != null) {
         mTimer.cancel();
         mTimer = null;
       }
       sMediaProjection.stop();
       // Stop the foreground service
+      Activity activity = cordova.getActivity();
       Intent intent = new Intent(activity, MediaProjectionService.class);
-      // Tell the service we want to start it
       intent.setAction("stop");
       activity.getApplicationContext().startForegroundService(intent);
     }
@@ -325,7 +325,6 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   }
 
   private void stopProjection() {
-    Activity activity = cordova.getActivity();
     if (mTimer != null) {
       mTimer.cancel();
       mTimer = null;
@@ -335,8 +334,8 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
       public void run() {
         if (sMediaProjection != null) {
           sMediaProjection.stop();
+          Activity activity = cordova.getActivity();
           Intent intent = new Intent(activity, MediaProjectionService.class);
-          // Tell the service we want to start it
           intent.setAction("stop");
           activity.getApplicationContext().startForegroundService(intent);
         }
@@ -370,30 +369,5 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
         VIRTUAL_DISPLAY_FLAGS, mImageReader.getSurface(), null, mHandler);
     mImageReader.setOnImageAvailableListener(new ImageAvailableListener(), mHandler);
     return true;
-  }
-
-  // enables media playback in the background, needed for Facetalk to extract the mediaStream
-  private void disableWebViewOptimizations() {
-    Thread thread = new Thread(){
-      public void run() {
-        try {
-          Thread.sleep(1000);
-          cordova.getActivity().runOnUiThread(() -> {
-            View view = webView.getEngine().getView();
-
-            try {
-              Class.forName("org.crosswalk.engine.XWalkCordovaView")
-                   .getMethod("onShow")
-                   .invoke(view);
-            } catch (Exception e){
-              view.dispatchWindowVisibilityChanged(View.VISIBLE);
-            }
-          });
-        } catch (InterruptedException e) {
-            // do nothing
-        }
-      }
-    };
-    thread.start();
   }
 }

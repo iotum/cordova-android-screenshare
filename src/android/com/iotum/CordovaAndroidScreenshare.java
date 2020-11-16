@@ -252,10 +252,15 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
     }.start();
   }
 
-  // TODO: Add logic for rejected permissions
   @Override
   public void onActivityResult(int requestCode, int resultCode, Intent data) {
     if (requestCode == REQUEST_CODE) {
+      // Start the foreground service
+      Intent intent = new Intent(activity, MediaProjectionService.class);
+      // Tell the service we want to start it
+      intent.setAction("start");
+      activity.getApplicationContext().startForegroundService(intent);
+
       sMediaProjection = mProjectionManager.getMediaProjection(resultCode, data);
 
       if (sMediaProjection != null) {
@@ -309,10 +314,6 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
    *******************************/
   private void startProjection() {
     Activity activity = cordova.getActivity();
-    Intent intent = new Intent(activity, MediaProjectionService.class);
-    // Tell the service we want to start it
-    intent.setAction("start");
-    activity.getApplicationContext().startForegroundService(intent);
     cordova.setActivityResultCallback(this);
     cordova.startActivityForResult(this, mProjectionManager.createScreenCaptureIntent(), REQUEST_CODE);
   }

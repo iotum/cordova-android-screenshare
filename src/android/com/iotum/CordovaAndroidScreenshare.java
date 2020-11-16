@@ -257,7 +257,7 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
     Activity activity = cordova.getActivity();
     if (requestCode == REQUEST_CODE) {
       // only continue if permission is granted
-      if (resultCode !== 0) {
+      if (resultCode != 0) {
         sMediaProjection = mProjectionManager.getMediaProjection(resultCode, data);
 
         if (sMediaProjection != null) {

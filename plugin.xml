@@ -23,7 +23,7 @@
         <param name="android-package" value="com.iotum.CordovaAndroidScreenshare" />
       </feature>
     </config-file>
-    <config-file parent="application/service" target="AndroidManifest.xml">
+    <config-file parent="application" target="AndroidManifest.xml">
       <service
         android:name=".MediaProjectionService"
         android:enabled="true"

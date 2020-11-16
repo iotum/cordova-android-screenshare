@@ -76,7 +76,6 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
   private int mCompression;
   private int mPendingFps;
   private int mPendingCompression;
-  private boolean disabledWebViewOptimizations = false;
 
   @Override
   public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
@@ -93,14 +92,13 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
       mPendingFps = fps;
       mPendingCompression = compression;
 
-      if (!disabledWebViewOptimizations) {
-        disableWebViewOptimizations();
-      }
       startProjection();
       return true;
     } else if (action.equals("stopProjection")) {
       stopProjection();
       return true;
+    } else if (action.equals("disableWebViewOptimizations")) {
+      disableWebViewOptimizations();
     } else if (action.equals("ping")) {
       callbackContext.success("pong");
       return true;
@@ -371,7 +369,6 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
 
   // enables media playback in the background, needed for Facetalk to extract the mediaStream
   private void disableWebViewOptimizations() {
-    disabledWebViewOptimizations = true;
     Thread thread = new Thread(){
       public void run() {
         try {

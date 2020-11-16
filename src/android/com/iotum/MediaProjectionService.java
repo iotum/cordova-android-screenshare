@@ -46,7 +46,6 @@ public class MediaProjectionService extends Service {
         } else {
             // Stop the service
             stopForeground(true);
-            stopSelf();
         }
         return START_STICKY;
     }

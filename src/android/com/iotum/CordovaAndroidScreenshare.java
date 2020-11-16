@@ -291,6 +291,12 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
           // register media projection stop callback
           sMediaProjection.registerCallback(new MediaProjectionStopCallback(), mHandler);
         }
+      } else {
+        // stop the foreground service if permission denied
+        Activity activity = cordova.getActivity();
+        Intent intent = new Intent(activity, MediaProjectionService.class);
+        intent.setAction("stop");
+        activity.getApplicationContext().startForegroundService(intent);
       }
     }
   }

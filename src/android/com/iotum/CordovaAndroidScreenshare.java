@@ -1,4 +1,4 @@
-package com.iotum.cordovaandroidscreenshare;
+package com.iotum;
 
 import android.app.Activity;
 import android.content.Context;
@@ -307,6 +307,10 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
    * UI Widget Callbacks
    *******************************/
   private void startProjection() {
+    Intent intent = new Intent(this, MediaProjectionService.class);
+    // Tell the service we want to start it
+    intent.setAction("start");
+    startForegroundService(intent);
     cordova.setActivityResultCallback(this);
     cordova.startActivityForResult(this, mProjectionManager.createScreenCaptureIntent(), REQUEST_CODE);
   }
@@ -321,6 +325,10 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
       public void run() {
         if (sMediaProjection != null) {
           sMediaProjection.stop();
+          Intent intent = new Intent(this, MediaProjectionService.class);
+          // Tell the service we want to start it
+          intent.setAction("stop");
+          startForegroundService(intent);
         }
       }
     });

@@ -20,9 +20,9 @@
   <platform name="android">
     <config-file target="res/xml/config.xml" parent="/*">
       <feature name="CordovaAndroidScreenshare">
-        <param name="android-package" value="com.iotum.cordovaandroidscreenshare.CordovaAndroidScreenshare" />
+        <param name="android-package" value="com.iotum.CordovaAndroidScreenshare" />
       </feature>
     </config-file>
-    <source-file src="src/android/com/iotum/cordovaandroidscreenshare/CordovaAndroidScreenshare.java" target-dir="src/com/iotum/cordovaandroidscreenshare" />
+    <source-file src="src/android/com/iotum/CordovaAndroidScreenshare.java" target-dir="src/com/iotum" />
   </platform>
 </plugin>

@@ -15,14 +15,23 @@
 
   <js-module src="www/index.js" name="CordovaAndroidScreenshare">
     <clobbers target="CordovaAndroidScreenshare" />
+    <clobbers target="MediaProjectionService" />
   </js-module>
 
   <platform name="android">
     <config-file target="res/xml/config.xml" parent="/*">
       <feature name="CordovaAndroidScreenshare">
-        <param name="android-package" value="com.iotum.cordovaandroidscreenshare.CordovaAndroidScreenshare" />
+        <param name="android-package" value="com.iotum.CordovaAndroidScreenshare" />
       </feature>
     </config-file>
-    <source-file src="src/android/com/iotum/cordovaandroidscreenshare/CordovaAndroidScreenshare.java" target-dir="src/com/iotum/cordovaandroidscreenshare" />
+    <config-file parent="application" target="AndroidManifest.xml">
+      <service
+        android:name="com.iotum.MediaProjectionService"
+        android:enabled="true"
+        android:exported="false"
+        android:foregroundServiceType="mediaProjection" />
+    </config-file>
+    <source-file src="src/android/com/iotum/CordovaAndroidScreenshare.java" target-dir="src/com/iotum" />
+    <source-file src="src/android/com/iotum/MediaProjectionService.java" target-dir="src/com/iotum" />
   </platform>
 </plugin>

@@ -1,4 +1,4 @@
-package com.iotum.cordovaandroidscreenshare;
+package com.iotum;
 
 import android.app.Activity;
 import android.content.Context;
@@ -251,43 +251,51 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
     }.start();
   }
 
-  // TODO: Add logic for rejected permissions
   @Override
   public void onActivityResult(int requestCode, int resultCode, Intent data) {
     if (requestCode == REQUEST_CODE) {
-      sMediaProjection = mProjectionManager.getMediaProjection(resultCode, data);
+      // only continue if permission is granted
+      if (resultCode != 0) {
+        sMediaProjection = mProjectionManager.getMediaProjection(resultCode, data);
 
-      if (sMediaProjection != null) {
-        mReady = true;
-        mFps = mPendingFps;
-        mCompression = mPendingCompression;
+        if (sMediaProjection != null) {
+          mReady = true;
+          mFps = mPendingFps;
+          mCompression = mPendingCompression;
 
-        int interval = 1000 / mFps;
-        mTimer = new Timer();
-        mTimer.scheduleAtFixedRate(new TimerTask() {
-          @Override
-          public void run() {
-            mReady = true;
+          int interval = 1000 / mFps;
+          mTimer = new Timer();
+          mTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+              mReady = true;
+            }
+          }, interval, interval);
+
+          // display metrics
+          DisplayMetrics metrics = cordova.getActivity().getResources().getDisplayMetrics();
+          mDensity = metrics.densityDpi;
+          mDisplay = cordova.getActivity().getWindowManager().getDefaultDisplay();
+          mRotation = mDisplay.getRotation();
+
+          // create virtual display depending on device width / height
+          createVirtualDisplay(true);
+
+          // register orientation change callback
+          mOrientationChangeCallback = new OrientationChangeCallback(cordova.getActivity().getApplicationContext());
+          if (mOrientationChangeCallback.canDetectOrientation()) {
+            mOrientationChangeCallback.enable();
           }
-        }, interval, interval);
 
-        // display metrics
-        DisplayMetrics metrics = cordova.getActivity().getResources().getDisplayMetrics();
-        mDensity = metrics.densityDpi;
-        mDisplay = cordova.getActivity().getWindowManager().getDefaultDisplay();
-        mRotation = mDisplay.getRotation();
-
-        // create virtual display depending on device width / height
-        createVirtualDisplay(true);
-
-        // register orientation change callback
-        mOrientationChangeCallback = new OrientationChangeCallback(cordova.getActivity().getApplicationContext());
-        if (mOrientationChangeCallback.canDetectOrientation()) {
-          mOrientationChangeCallback.enable();
+          // register media projection stop callback
+          sMediaProjection.registerCallback(new MediaProjectionStopCallback(), mHandler);
         }
-
-        // register media projection stop callback
-        sMediaProjection.registerCallback(new MediaProjectionStopCallback(), mHandler);
+      } else {
+        // stop the foreground service if permission denied
+        Activity activity = cordova.getActivity();
+        Intent intent = new Intent(activity, MediaProjectionService.class);
+        intent.setAction("stop");
+        activity.getApplicationContext().startService(intent);
       }
     }
   }
@@ -300,6 +308,11 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
         mTimer = null;
       }
       sMediaProjection.stop();
+      // Stop the foreground service
+      Activity activity = cordova.getActivity();
+      Intent intent = new Intent(activity, MediaProjectionService.class);
+      intent.setAction("stop");
+      activity.getApplicationContext().startService(intent);
     }
   }
 
@@ -307,8 +320,14 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
    * UI Widget Callbacks
    *******************************/
   private void startProjection() {
+    // Request permission to capture screen
     cordova.setActivityResultCallback(this);
     cordova.startActivityForResult(this, mProjectionManager.createScreenCaptureIntent(), REQUEST_CODE);
+    // Start a mandatory MediaProjection foreground service with a notification for Android SDK 29
+    Activity activity = cordova.getActivity();
+    Intent intent = new Intent(activity, MediaProjectionService.class);
+    intent.setAction("start");
+    activity.getApplicationContext().startService(intent);
   }
 
   private void stopProjection() {
@@ -321,6 +340,10 @@ public class CordovaAndroidScreenshare extends CordovaPlugin {
       public void run() {
         if (sMediaProjection != null) {
           sMediaProjection.stop();
+          Activity activity = cordova.getActivity();
+          Intent intent = new Intent(activity, MediaProjectionService.class);
+          intent.setAction("stop");
+          activity.getApplicationContext().startService(intent);
         }
       }
     });

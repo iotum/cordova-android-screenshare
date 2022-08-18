@@ -33,5 +33,6 @@
     </config-file>
     <source-file src="src/android/com/iotum/CordovaAndroidScreenshare.java" target-dir="src/com/iotum" />
     <source-file src="src/android/com/iotum/MediaProjectionService.java" target-dir="src/com/iotum" />
+    <framework src="androidx.work:work-runtime:2.7.1" />
   </platform>
 </plugin>
